@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Christmas Crackers</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #c21807;
+        }
+
+        .cracker-container {
+            margin: 20px auto;
+            max-width: 400px;
+        }
+
+        .cracker {
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(90deg, #ff0000 33%, #ffffff 33%, #ffffff 66%, #ff0000 66%);
+            border: 2px solid #c21807;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .cracker:hover {
+            transform: scale(1.05);
+        }
+
+        .cracker span {
+            font-size: 1.5rem;
+            color: white;
+            padding: 0 15px;
+            font-weight: bold;
+        }
+
+        .message {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #333;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer {
+            margin-top: 50px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f9d71c;
+            border-radius: 50%;
+            animation: fall 2s linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(500px) scale(0.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Virtual Christmas Crackers</h1>
+    <p>Open one cracker each day until Christmas Eve!</p>
+
+    <div class="cracker-container">
+        <div id="cracker" class="cracker" onclick="openCracker()">
+            <span>🎄</span>
+            <span>Pull Me!</span>
+            <span>🎁</span>
+        </div>
+    </div>
+
+    <div id="message" class="message" style="display: none;"></div>
+
+    <div id="confetti-container" style="position: relative; width: 100%; height: 0; overflow: visible;"></div>
+
+    <p class="footer">Happy Holidays! 🎅</p>
+
+    <script>
+        const messages = [
+            "What is your favorite Christmas song?",
+            "Why don't crabs celebrate Christmas? Because they're shellfish!",
+            "What do you call an elf that sings? A wrapper!",
+            "What’s your favorite holiday tradition?",
+            "Why was the Christmas tree so bad at sewing? It kept dropping its needles!",
+            "If you could give one gift to anyone in the world, who would it be and why?",
+            "What did one snowman say to the other? Do you smell carrots?",
+            "What's your favorite Christmas movie?",
+            "What do you get if you cross a snowman and a dog? Frostbite!",
+            "What’s your favorite Christmas memory?",
+            "Why did the Christmas cookie go to the doctor? It was feeling crumby!",
+            "What's the most memorable gift you've ever received?",
+            "What do elves learn in school? The elf-abet!",
+            "Why was the math book sad at Christmas? It had too many problems!",
+            "What is your favorite holiday food?",
+            "What do you call Santa when he stops moving? Santa Pause!",
+            "What's your favorite winter activity?",
+            "Why don’t you ever see Santa in the hospital? Because he has private elf-care!",
+            "If you could spend Christmas anywhere in the world, where would it be?",
+            "Why did the turkey join the band? Because it had the drumsticks!",
+            "What’s your favorite Christmas decoration?",
+            "Why did the Christmas tree go to the barber? It needed a trim!",
+            "What would you name a reindeer if you had one?"
+        ];
+
+        let openedDates = JSON.parse(localStorage.getItem('openedDates')) || {};
+
+        function openCracker() {
+            const today = new Date().toISOString().split('T')[0];
+            const dayOfMonth = new Date().getDate() - 1;
+
+            if (openedDates[today]) {
+                document.getElementById('message').style.display = 'block';
+                document.getElementById('message').textContent = openedDates[today];
+                return;
+            }
+
+            if (dayOfMonth >= 0 && dayOfMonth < messages.length) {
+                const message = messages[dayOfMonth];
+                document.getElementById('message').style.display = 'block';
+                document.getElementById('message').textContent = message;
+
+                createConfetti();
+
+                openedDates[today] = message;
+                localStorage.setItem('openedDates', JSON.stringify(openedDates));
+            } else {
+                alert("No more crackers to open! Come back tomorrow!");
+            }
+        }
+
+        function createConfetti() {
+            const confettiContainer = document.getElementById('confetti-container');
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                confetti.style.animationDelay = `${Math.random() * 2}s`;
+                confettiContainer.appendChild(confetti);
+
+                setTimeout(() => {
+                    confetti.remove();
+                }, 2000);
+            }
+        }
+
+        function resetCrackers() {
+            if (confirm("Are you sure you want to reset all crackers?")) {
+                localStorage.removeItem('openedDates');
+                alert("Crackers have been reset!");
+            }
+        }
+    </script>
+</body>
+</html>
