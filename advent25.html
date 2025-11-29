@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dev Team Advent Calendar</title>
+  <title>GCJ Bubbles 2025 Advent Calendar</title>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -11,6 +11,17 @@
 </head>
 <body>
   <div id="root"></div>
+  
+  <!-- Testing Controls -->
+  <div style="position: fixed; top: 10px; right: 10px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1000; visibility: hidden;">
+    <div style="font-weight: bold; margin-bottom: 8px; color: #333;">Testing Mode</div>
+    <input type="date" id="testDate" style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 150px;" />
+    <button onclick="window.setTestDate()" style="margin-left: 5px; padding: 5px 10px; background: #4F46E5; color: white; border: none; border-radius: 4px; cursor: pointer;">Set Date</button>
+    <button onclick="window.resetDate()" style="margin-left: 5px; padding: 5px 10px; background: #DC2626; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset</button>
+  </div>
+
+  <!-- Music Control -->
+  <div id="musicControl" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;"></div>
   
   <script type="text/babel">
     const { useState, useEffect } = React;
@@ -52,6 +63,22 @@
       </svg>
     );
 
+    const Volume2 = ({ className }) => (
+      <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+      </svg>
+    );
+
+    const VolumeX = ({ className }) => (
+      <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <line x1="23" y1="9" x2="17" y2="15"></line>
+        <line x1="17" y1="9" x2="23" y2="15"></line>
+      </svg>
+    );
+
     const DevAdventCalendar = () => {
       const [currentDate, setCurrentDate] = useState(new Date());
       const [selectedDay, setSelectedDay] = useState(null);
@@ -66,6 +93,111 @@
         return opened;
       });
       const [snowflakes, setSnowflakes] = useState([]);
+      const [isMuted, setIsMuted] = useState(false);
+
+      // Christmas songs from Fesliyan Studios (excluding O Come O Come Emmanuel)
+      const christmasSongs = [
+        'https://www.fesliyanstudios.com/musicfiles/2020-10-27_-_Presents_On_Christmas_Morning_-_www.FesliyanStudios.com_Steve_Oxen/2020-10-27_-_Presents_On_Christmas_Morning_-_www.FesliyanStudios.com_Steve_Oxen.mp3',
+        'https://www.fesliyanstudios.com/musicfiles/2020-11-11_-_Holiday_Hustle_-_www.FesliyanStudios.com_David_Renda/2020-11-11_-_Holiday_Hustle_-_www.FesliyanStudios.com_David_Renda.mp3',
+        'https://www.fesliyanstudios.com/musicfiles/ChristmasBackgroundMusic2018-12-5_-_A_Happy_Christmas_-_David_Fesliyan.mp3',
+        'https://www.fesliyanstudios.com/musicfiles/2023-09-11_-_Early_Christmas_Morning_-_www.FesliyanStudios.com/2023-09-11_-_Early_Christmas_Morning_-_www.FesliyanStudios.com.mp3',
+        'https://www.fesliyanstudios.com/musicfiles/2023-08-25_-_Festive_Fireside_-_www.FesliyanStudios.com/2023-08-25_-_Festive_Fireside_-_www.FesliyanStudios.com.mp3',
+        'https://www.fesliyanstudios.com/musicfiles/2023-08-25_-_Soaring_Sleighride_-_www.FesliyanStudios.com/2023-08-25_-_Soaring_Sleighride_-_www.FesliyanStudios.com.mp3',
+        'https://www.fesliyanstudios.com/musicfiles/2023-08-25_-_Glistening_Gifts_-_www.FesliyanStudios.com/2023-08-25_-_Glistening_Gifts_-_www.FesliyanStudios.com.mp3',
+        'https://www.fesliyanstudios.com/musicfiles/2023-08-25_-_Frosted_Frenzy_-_www.FesliyanStudios.com/2023-08-25_-_Frosted_Frenzy_-_www.FesliyanStudios.com.mp3'
+      ];
+
+      // Expose functions for testing
+      useEffect(() => {
+        window.setTestDate = () => {
+          const input = document.getElementById('testDate');
+          if (input.value) {
+            const newDate = new Date(input.value);
+            setCurrentDate(newDate);
+          }
+        };
+        
+        window.resetDate = () => {
+          setCurrentDate(new Date());
+          document.getElementById('testDate').value = '';
+        };
+
+        // Preload sleigh bells audio
+        window.sleighBellsAudio = new Audio('https://raw.githubusercontent.com/dscottie/dscottie.github.io/main/bhjeissrg7e-sleigh-bells-sfx-0.mp3');
+
+        // Setup background music
+        const randomSong = christmasSongs[Math.floor(Math.random() * christmasSongs.length)];
+        window.backgroundMusic = new Audio(randomSong);
+        window.backgroundMusic.loop = false; // Play full track, then stop
+        window.backgroundMusic.volume = 0.3;
+        
+        // Play next random song when current one ends
+        window.backgroundMusic.addEventListener('ended', () => {
+          const nextSong = christmasSongs[Math.floor(Math.random() * christmasSongs.length)];
+          window.backgroundMusic.src = nextSong;
+          if (!isMuted) {
+            window.backgroundMusic.play().catch(err => console.log('Play prevented'));
+          }
+        });
+        
+        // Try to play background music (will need user interaction in some browsers)
+        const playMusic = () => {
+          if (!isMuted) {
+            window.backgroundMusic.play().catch(err => {
+              console.log('Autoplay prevented, waiting for user interaction');
+            });
+          }
+        };
+        
+        playMusic();
+        
+        // Cleanup
+        return () => {
+          if (window.backgroundMusic) {
+            window.backgroundMusic.pause();
+          }
+        };
+      }, []);
+
+      useEffect(() => {
+        if (window.backgroundMusic) {
+          if (isMuted) {
+            window.backgroundMusic.pause();
+          } else {
+            window.backgroundMusic.play().catch(err => console.log('Play prevented'));
+          }
+        }
+      }, [isMuted]);
+
+      const playSleighBells = () => {
+        const audio = window.sleighBellsAudio.cloneNode();
+        audio.volume = 1;
+        audio.play();
+        
+        // Fade out sleigh bells over 2 seconds
+        const fadeOutDuration = 2000;
+        const fadeOutSteps = 20;
+        const fadeOutInterval = fadeOutDuration / fadeOutSteps;
+        const volumeDecrement = 1 / fadeOutSteps;
+        
+        let currentStep = 0;
+        const fadeOut = setInterval(() => {
+          currentStep++;
+          const newVolume = Math.max(0, 1 - (volumeDecrement * currentStep));
+          
+          // Only update if audio is still valid
+          if (audio && !audio.paused) {
+            audio.volume = newVolume;
+          }
+          
+          if (currentStep >= fadeOutSteps) {
+            clearInterval(fadeOut);
+            if (audio) {
+              audio.pause();
+            }
+          }
+        }, fadeOutInterval);
+      };
 
       useEffect(() => {
         const flakes = Array.from({ length: 50 }, (_, i) => ({
@@ -113,22 +245,12 @@
       const handleDayClick = (day) => {
         if (canOpen(day)) {
           setSelectedDay(day);
+          playSleighBells();
           if (!openedDays.includes(day)) {
             setOpenedDays([...openedDays, day]);
           }
         }
       };
-
-      const getTodaysJoke = () => {
-        const today = currentDate.getDate();
-        const currentMonth = currentDate.getMonth();
-        if (currentMonth === 11 && today <= 23 && weekdays.includes(today)) {
-          return { day: today, joke: jokes[today] };
-        }
-        return null;
-      };
-
-      const todaysJoke = getTodaysJoke();
 
       return (
         <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 p-8 relative overflow-hidden">
@@ -158,28 +280,31 @@
                 transform: translateY(100vh) rotate(360deg);
               }
             }
+            @keyframes sparkleIn {
+              0% {
+                transform: scale(0.3) rotate(-180deg);
+                opacity: 0;
+              }
+              60% {
+                transform: scale(1.05) rotate(5deg);
+              }
+              100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+              }
+            }
           `}</style>
           
           <div className="max-w-6xl mx-auto relative z-10">
             <div className="text-center mb-8">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Code className="w-10 h-10 text-yellow-300" />
-                <h1 className="text-5xl font-bold text-white">Dev Team Advent Calendar</h1>
+                <h1 className="text-5xl font-bold text-white">GCJ Bubbles 2025 Advent Calendar</h1>
                 <Sparkles className="w-10 h-10 text-yellow-300" />
               </div>
               <p className="text-xl text-blue-200">Daily jokes for your December standups! 🎄</p>
               <p className="text-sm text-blue-300 mt-2">Weekdays only: Dec 1-23</p>
             </div>
-
-            {todaysJoke && (
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 mb-8 shadow-2xl border-4 border-yellow-300 animate-pulse">
-                <div className="flex items-center gap-3 mb-3">
-                  <Gift className="w-8 h-8 text-white" />
-                  <h2 className="text-2xl font-bold text-white">Today's Joke (Day {todaysJoke.day})</h2>
-                </div>
-                <p className="text-xl text-white font-medium leading-relaxed">{todaysJoke.joke}</p>
-              </div>
-            )}
 
             <div className="grid grid-cols-5 gap-4 mb-8">
               {weekdays.map((day) => {
@@ -212,22 +337,60 @@
             </div>
 
             {selectedDay && (
-              <div className="bg-white rounded-2xl p-8 shadow-2xl">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold">
-                    {selectedDay}
+              <>
+                {/* Backdrop */}
+                <div 
+                  className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                  onClick={() => setSelectedDay(null)}
+                ></div>
+                
+                {/* Modal */}
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                  <div 
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-8 shadow-2xl border-4 border-yellow-300 max-w-2xl w-full relative"
+                    style={{
+                      animation: 'sparkleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+                    }}
+                  >
+                    {/* Close button */}
+                    <button
+                      onClick={() => setSelectedDay(null)}
+                      className="absolute top-4 right-4 text-white hover:text-yellow-300 transition-colors"
+                      style={{ fontSize: '24px', fontWeight: 'bold', lineHeight: '1' }}
+                    >
+                      ✕
+                    </button>
+                    
+                    <div className="flex items-center gap-3 mb-4">
+                      <Gift className="w-8 h-8 text-white" />
+                      <h2 className="text-3xl font-bold text-white">December {selectedDay}</h2>
+                      <Sparkles className="w-8 h-8 text-yellow-300" />
+                    </div>
+                    <p className="text-2xl text-white font-medium leading-relaxed">{jokes[selectedDay]}</p>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800">December {selectedDay}</h3>
                 </div>
-                <p className="text-xl text-gray-700 leading-relaxed">{jokes[selectedDay]}</p>
-              </div>
+              </>
             )}
 
             <div className="text-center mt-8 text-blue-200">
               <p className="text-sm">Made with ❤️ for your awesome dev team</p>
+              <p className="text-sm">Christmas background music by Fesliyan Studios - https://www.fesliyanstudios.com/royalty-free-music/downloads-c/christmas-music/33</p>
               <p className="text-xs mt-2">Happy Holidays! 🎅💻</p>
             </div>
           </div>
+
+          {/* Music Control Button */}
+          <button
+            onClick={() => setIsMuted(!isMuted)}
+            className="fixed bottom-6 right-6 bg-white rounded-full p-4 shadow-2xl hover:scale-110 transition-transform z-50"
+            style={{ width: '60px', height: '60px' }}
+          >
+            {isMuted ? (
+              <VolumeX className="w-8 h-8 text-red-500 mx-auto" />
+            ) : (
+              <Volume2 className="w-8 h-8 text-green-500 mx-auto" />
+            )}
+          </button>
         </div>
       );
     };
